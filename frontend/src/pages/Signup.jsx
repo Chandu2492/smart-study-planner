@@ -27,7 +27,7 @@ setLoading(true)
 
 const res =
 await fetch(
-"http://127.0.0.1:8000/register",
+"https://smart-study-planner-backend-x95q.onrender.com/register",
 {
 method:"POST",
 
