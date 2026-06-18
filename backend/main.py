@@ -79,7 +79,7 @@ conf = ConnectionConfig(
 
     USE_CREDENTIALS=True,
 
-    VALIDATE_CERTS=True,
+    VALIDATE_CERTS=False,
 
     TIMEOUT=30
 )
