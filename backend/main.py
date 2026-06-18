@@ -219,10 +219,11 @@ async def forgot_password(user: ForgotPassword):
                 "https://api.resend.com/emails",
                 headers={
                     "Authorization": f"Bearer {resend_api_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "User-Agent": "FastAPI-App/1.0"  # <-- ADDED THIS HEADER
                 },
                 json={
-                    "from": "onboarding@resend.dev",  # Resend's free tier sandbox email
+                    "from": "onboarding@resend.dev",
                     "to": user.email,
                     "subject": "Reset Password",
                     "html": f"""
@@ -241,8 +242,6 @@ async def forgot_password(user: ForgotPassword):
     except Exception as e:
         print("MAIL ERROR:", str(e))
         return {"message": f"Server Error: {str(e)}"}
-
-
 # -------------------
 # RESET PASSWORD
 # -------------------
