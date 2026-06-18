@@ -312,7 +312,7 @@ user: ForgotPassword
 
     )
 
-    link=f"http://localhost:5173/reset/{token}"
+    link=f"https://smart-study-planner-backend-x95q.onrender.com/reset/{token}"
 
     message=MessageSchema(
 
