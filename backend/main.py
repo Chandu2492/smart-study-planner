@@ -64,11 +64,11 @@ conf = ConnectionConfig(
 
     MAIL_USERNAME="chandu2006gajjala@gmail.com",
 
-    MAIL_PASSWORD="bgekyepnqcoieewz",
+    MAIL_PASSWORD="gfssrrwpknichzdv",
 
     MAIL_FROM="chandu2006gajjala@gmail.com",
 
-    MAIL_PORT=587,
+    MAIL_PORT=465,
 
     MAIL_SERVER="smtp.gmail.com",
 
