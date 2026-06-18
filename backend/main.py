@@ -11,6 +11,7 @@ from jose import jwt
 import mysql.connector
 import bcrypt
 import re
+import os
 
 
 # -------------------
@@ -62,19 +63,19 @@ db.commit()
 
 conf = ConnectionConfig(
 
-    MAIL_USERNAME="chandu2006gajjala@gmail.com",
+    MAIL_USERNAME=os.getenv("chandu2006gajjala@gmail.com"),
 
-    MAIL_PASSWORD="gfssrrwpknichzdv",
+    MAIL_PASSWORD=os.getenv("gfssrrwpknichzdv"),
 
-    MAIL_FROM="chandu2006gajjala@gmail.com",
+    MAIL_FROM=os.getenv("chandu2006gajjala@gmail.com"),
 
-    MAIL_PORT=465,
+    MAIL_PORT=587,
 
     MAIL_SERVER="smtp.gmail.com",
 
-    MAIL_STARTTLS=False,
+    MAIL_STARTTLS=True,
 
-    MAIL_SSL_TLS=True,
+    MAIL_SSL_TLS=False,
 
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True
