@@ -209,7 +209,7 @@ async def forgot_password(user: ForgotPassword):
 
         link = f"https://smart-study-planner-backend-x95q.onrender.com/reset/{token}"
 
-        # Send email via Resend HTTP API (Port 443 - not blocked by Render)
+        # Send email via Resend HTTP API
         resend_api_key = os.getenv("RESEND_API_KEY")
         if not resend_api_key:
             return {"message": "Missing RESEND_API_KEY environment variable"}
@@ -220,7 +220,7 @@ async def forgot_password(user: ForgotPassword):
                 headers={
                     "Authorization": f"Bearer {resend_api_key}",
                     "Content-Type": "application/json",
-                    "User-Agent": "FastAPI-App/1.0"  # <-- ADDED THIS HEADER
+                    "User-Agent": "FastAPI-App/1.0"
                 },
                 json={
                     "from": "onboarding@resend.dev",
@@ -234,8 +234,16 @@ async def forgot_password(user: ForgotPassword):
                 }
             )
             
-            # Raise exception if request failed
-            response.raise_for_status()
+            # If Resend returns an error status code, fetch the exact error message
+            if response.status_code != 200:
+                try:
+                    error_data = response.json()
+                    error_msg = error_data.get("message", "Forbidden")
+                except Exception:
+                    error_msg = response.text
+                
+                print("RESEND API ERROR:", error_msg)
+                return {"message": f"Resend Error: {error_msg}"}
 
         return {"message": "Reset Link Sent"}
 
