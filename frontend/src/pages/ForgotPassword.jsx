@@ -26,7 +26,7 @@ const res=
 
 await fetch(
 
-"http://127.0.0.1:8000/forgot-password",
+"https://smart-study-planner-backend-x95q.onrender.com/forgot-password",
 
 {
 
