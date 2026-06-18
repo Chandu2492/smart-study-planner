@@ -6,13 +6,8 @@ from mysql.connector import pooling
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from fastapi_mail import (
-    FastMail,
-    MessageSchema,
-    ConnectionConfig,
-    MessageType
-)
 from jose import jwt
+import httpx
 
 SECRET_KEY = "studyplannersecret"
 
@@ -32,6 +27,7 @@ app.add_middleware(
 # -------------------
 # DATABASE CONNECTION POOL
 # -------------------
+# Prevents database disconnects and handles multiple connections safely
 db_pool = pooling.MySQLConnectionPool(
     pool_name="studyplanner_pool",
     pool_size=5,
@@ -42,7 +38,7 @@ db_pool = pooling.MySQLConnectionPool(
     port=int(os.getenv("DB_PORT", 3306))
 )
 
-# Initialize tables safely using a temporary connection
+# Initialize tables safely
 def init_db():
     conn = db_pool.get_connection()
     cursor = conn.cursor()
@@ -72,7 +68,7 @@ def init_db():
 
 init_db()
 
-# Helper function to execute queries safely and manage connections
+# Helper function to execute queries safely
 def execute_query(query, params=None, fetch_all=False, commit=False):
     conn = db_pool.get_connection()
     cursor = conn.cursor()
@@ -86,24 +82,6 @@ def execute_query(query, params=None, fetch_all=False, commit=False):
     finally:
         cursor.close()
         conn.close()
-
-
-# -------------------
-# EMAIL CONFIG
-# -------------------
-conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),  # Must be your 16-character Google App Password
-    MAIL_FROM=os.getenv("MAIL_FROM"),
-    MAIL_PORT=587,                              # Port 587 is standard and more reliable
-    MAIL_SERVER="smtp.gmail.com",
-    MAIL_STARTTLS=True,                         # Set to True for Port 587
-    MAIL_SSL_TLS=False,                         # Set to False for Port 587
-    USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
-)
-
-fm = FastMail(conf)
 
 
 # -------------------
@@ -231,14 +209,33 @@ async def forgot_password(user: ForgotPassword):
 
         link = f"https://smart-study-planner-backend-x95q.onrender.com/reset/{token}"
 
-        message = MessageSchema(
-            subject="Reset Password",
-            recipients=[user.email],
-            body=f"Reset your password:\n\n{link}",
-            subtype=MessageType.plain
-        )
+        # Send email via Resend HTTP API (Port 443 - not blocked by Render)
+        resend_api_key = os.getenv("RESEND_API_KEY")
+        if not resend_api_key:
+            return {"message": "Missing RESEND_API_KEY environment variable"}
 
-        await fm.send_message(message)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "from": "onboarding@resend.dev",  # Resend's free tier sandbox email
+                    "to": user.email,
+                    "subject": "Reset Password",
+                    "html": f"""
+                    <p>You requested a password reset. Click the link below to reset your password:</p>
+                    <p><a href="{link}" style="background-color: #8a2be2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+                    <p>If you did not request this, please ignore this email.</p>
+                    """
+                }
+            )
+            
+            # Raise exception if request failed
+            response.raise_for_status()
+
         return {"message": "Reset Link Sent"}
 
     except Exception as e:
@@ -252,7 +249,7 @@ async def forgot_password(user: ForgotPassword):
 @app.post("/reset-password")
 def reset_password(data: User):
     try:
-        # Here, data.email is actually acting as the JWT token
+        # data.email contains the token string passed from the frontend url
         decoded = jwt.decode(
             data.email,
             SECRET_KEY,
