@@ -78,7 +78,10 @@ conf = ConnectionConfig(
     MAIL_SSL_TLS=False,
 
     USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
+
+    VALIDATE_CERTS=True,
+
+    TIMEOUT=30
 )
 
 
@@ -287,87 +290,70 @@ def planner(email: str):
 # -------------------
 
 @app.post("/forgot-password")
+async def forgot_password(user: ForgotPassword):
 
-async def forgot_password(
-user: ForgotPassword
-):
+    try:
 
-    cursor.execute(
-        """
-        SELECT email
-        FROM users
-        WHERE email=%s
-        """,
+        cursor.execute(
+            """
+            SELECT email
+            FROM users
+            WHERE email=%s
+            """,
+            (user.email,)
+        )
 
-        (user.email,)
-    )
+        exists = cursor.fetchone()
 
-    exists=cursor.fetchone()
+        if not exists:
 
-    if not exists:
+            return {
+                "message": "Email Not Registered"
+            }
 
-        return{
-            "message":
-            "Email Not Registered"
-        }
+        token = jwt.encode(
 
-    token=jwt.encode(
+            {
+                "email": user.email
+            },
 
-        {
-            "email":
-            user.email
-        },
+            SECRET_KEY,
 
-        SECRET_KEY,
+            algorithm="HS256"
+        )
 
-        algorithm="HS256"
+        link = f"https://smart-study-planner-backend-x95q.onrender.com/reset/{token}"
 
-    )
+        message = MessageSchema(
 
-    link=f"https://smart-study-planner-backend-x95q.onrender.com/reset/{token}"
+            subject="Reset Password",
 
-    message=MessageSchema(
+            recipients=[user.email],
 
-        subject=
-        "Reset Your Password",
-
-        recipients=[
-            user.email
-        ],
-
-        body=f"""
-
-Hello,
-
-You requested password reset.
-
-Open:
+            body=f"""
+Reset your password:
 
 {link}
-
-Enter your new password.
-
-Smart Study Planner
-
 """,
 
-        subtype="plain"
+            subtype="plain"
+        )
 
-    )
+        fm = FastMail(conf)
 
-    fm=FastMail(conf)
+        await fm.send_message(message)
 
-    await fm.send_message(
-        message
-    )
+        return {
+            "message": "Reset Link Sent"
+        }
 
-    return{
+    except Exception as e:
 
-        "message":
-        "Reset Link Sent"
+        print("MAIL ERROR:", str(e))
 
-    }
-
+        return {
+            "message": str(e)
+        }
 
 # -------------------
 # RESET PASSWORD
