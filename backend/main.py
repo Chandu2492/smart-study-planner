@@ -68,13 +68,13 @@ conf = ConnectionConfig(
 
     MAIL_FROM="chandu2006gajjala@gmail.com",
 
-    MAIL_PORT=587,
+    MAIL_PORT=465,
 
     MAIL_SERVER="smtp.gmail.com",
 
-    MAIL_STARTTLS=True,
+    MAIL_STARTTLS=False,
 
-    MAIL_SSL_TLS=False,
+    MAIL_SSL_TLS=True,
 
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True
