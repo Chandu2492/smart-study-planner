@@ -13,6 +13,8 @@ useState("")
 const [password,setPassword]=
 useState("")
 
+const [loading,setLoading]=
+useState(false)
 
 useEffect(()=>{
 
@@ -22,8 +24,7 @@ setPassword("")
 },[])
 
 
-
-function login(){
+async function login(){
 
 if(
 !email.trim()
@@ -39,6 +40,44 @@ return
 
 }
 
+try{
+
+setLoading(true)
+
+const res=
+await fetch(
+
+"https://smart-study-planner-backend-x95q.onrender.com/login",
+
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+email,
+password
+
+})
+
+}
+
+)
+
+const data=
+await res.json()
+
+setLoading(false)
+
+if(
+data.message===
+"Login Success"
+){
+
 localStorage.setItem(
 
 "user",
@@ -51,9 +90,35 @@ email
 
 )
 
+alert(
+"Login Success"
+)
+
 navigate(
 "/dashboard"
 )
+
+}
+
+else{
+
+alert(
+data.message
+)
+
+}
+
+}
+
+catch{
+
+setLoading(false)
+
+alert(
+"Server Error"
+)
+
+}
 
 }
 
@@ -71,11 +136,9 @@ return(
 
 </h1>
 
-
 <input
 type="email"
 placeholder="Enter Email"
-autoComplete="off"
 value={email}
 onChange={(e)=>
 setEmail(
@@ -83,11 +146,9 @@ e.target.value
 )}
 />
 
-
 <input
 type="password"
 placeholder="Enter Password"
-autoComplete="new-password"
 value={password}
 onChange={(e)=>
 setPassword(
@@ -95,15 +156,25 @@ e.target.value
 )}
 />
 
-
 <button
 onClick={login}
 >
 
-Login
+{
+
+loading
+
+?
+
+"Loading..."
+
+:
+
+"Login"
+
+}
 
 </button>
-
 
 <p>
 
@@ -120,7 +191,6 @@ navigate("/signup")
 </span>
 
 </p>
-
 
 <button
 className="forgotBtn"
