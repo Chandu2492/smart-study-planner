@@ -207,7 +207,7 @@ async def forgot_password(user: ForgotPassword):
             algorithm="HS256"
         )
 
-        link = f"https://smart-study-planner-backend-x95q.onrender.com/reset/{token}"
+        link = f"https://smart-study-planner-tl82.onrender.com/reset/{token}"
 
         # Send email via Resend HTTP API
         resend_api_key = os.getenv("RESEND_API_KEY")
