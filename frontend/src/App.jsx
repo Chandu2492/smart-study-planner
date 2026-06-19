@@ -51,7 +51,7 @@ element={
 />
 
 <Route
-path="/reset/:token"
+path="/reset-password/:token"
 element={
 <ResetPassword/>
 }
