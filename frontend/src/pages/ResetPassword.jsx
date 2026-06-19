@@ -30,7 +30,7 @@ setLoading(true)
 const res =
 await fetch(
 
-"http://127.0.0.1:8000/reset-password",
+"https://smart-study-planner-backend-x95q.onrender.com/reset-password",
 
 {
 method: "POST",
@@ -68,7 +68,7 @@ alert(
 )
 
 window.location.href =
-"/"
+"/login"
 
 }
 
